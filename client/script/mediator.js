@@ -20,6 +20,36 @@ var mediator = (function () {
         return JSON.parse(JSON.stringify(mediator.data));
     }
 
+    function updateLocalData(newData) {
+        // Check newData for differences, then send updates to
+        // server
+
+        _.each(newData, function (node, id) {
+            if (node == null){
+                delete newData[id];
+            } else {
+                if (!_.isEqual(node, mediator.data[id])) {
+                    pendingUpdates[id] = _.union(pendingUpdates[id] || [], propertyDiff(node, mediator.data[id]));
+                }
+            }
+        });
+
+        //Determine which nodes have been lost
+        //TODO tremendously inefficient
+
+        var newNodes = _.keys(newData);
+        var oldNodes = _.keys(mediator.data);
+        var allNodes = _.union(newNodes, oldNodes);
+
+        var addNodes = _.difference(allNodes, newNodes);
+
+        _.each(addNodes, function (nodeID) {
+            pendingUpdates[nodeID] = ["remove"];
+        });
+
+        mediator.data = newData;
+    }
+
     //Returns array of properties that differ
     function propertyDiff(obj1, obj2) {
 
@@ -52,7 +82,7 @@ var mediator = (function () {
 
     function initLoop() {
 
-        logic.init(cloneData());
+        updateLocalData(logic.init(cloneData()));
         visual.init(cloneData());
 
 
@@ -65,35 +95,7 @@ var mediator = (function () {
                 dataio.request();
             }
 
-            var newData = logic.loop(cloneData());
-
-            // Check newData for differences, then send updates to
-            // server
-
-            _.each(newData, function (node, id) {
-                if (node == null){
-                    delete newData[id];
-                } else {
-                    if (!_.isEqual(node, mediator.data[id])) {
-                        pendingUpdates[id] = _.union(pendingUpdates[id] || [], propertyDiff(node, mediator.data[id]));
-                    }
-                }
-            });
-
-            //Determine which nodes have been lost
-            //TODO tremendously inefficient
-
-            var newNodes = _.keys(newData);
-            var oldNodes = _.keys(mediator.data);
-            var allNodes = _.union(newNodes, oldNodes);
-
-            var addNodes = _.difference(allNodes, newNodes);
-
-            _.each(addNodes, function (nodeID) {
-                pendingUpdates[nodeID] = ["remove"];
-            });
-
-            mediator.data = newData;
+            updateLocalData(logic.loop(cloneData()));
 
             if (t % C.updateFrequency === 0) {
                 _.each(pendingUpdates, function (properties, id) {

@@ -2,6 +2,8 @@ var logic = (function () {
 
     function init(data) {
         // Game Logic Initialization
+
+        return data;
     }
 
     function loop(data) {
