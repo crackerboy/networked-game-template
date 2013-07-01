@@ -70,6 +70,7 @@ var dataio = (function () {
     function encode(value) {
         if (typeof value === "number" || typeof value === "string") {
             return value;
+        }
         return JSON.stringify(value);
     }
 
@@ -119,8 +120,6 @@ var dataio = (function () {
                 .flatten()
                 .value()
                 .join("\t");
-
-        console.log(string);
 
         majaX({
             url: '/pollChange',

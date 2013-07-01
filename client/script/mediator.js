@@ -23,6 +23,14 @@ var mediator = (function () {
     //Returns array of properties that differ
     function propertyDiff(obj1, obj2) {
 
+        if (_obj1 == null){
+            return _.keys(_obj2);
+        }
+
+        if (_obj2 == null){
+            return _.keys(_obj1);
+        }
+
         //TODO optimize, unnecessary double pass
 
         function diff(_obj1, _obj2) {
