@@ -23,17 +23,19 @@ var mediator = (function () {
     //Returns array of properties that differ
     function propertyDiff(obj1, obj2) {
 
-        if (_obj1 == null){
-            return _.keys(_obj2);
-        }
-
-        if (_obj2 == null){
-            return _.keys(_obj1);
-        }
-
         //TODO optimize, unnecessary double pass
 
         function diff(_obj1, _obj2) {
+
+            if (_obj1 == null){
+                return _.keys(_obj2);
+            }
+
+            if (_obj2 == null){
+                return _.keys(_obj1);
+            }
+
+            //Check for differing properties
             var props = [], p;
             for (p in _obj1) {
                 if (_obj1.hasOwnProperty(p)) {
@@ -69,9 +71,26 @@ var mediator = (function () {
             // server
 
             _.each(newData, function (node, id) {
-                if (!_.isEqual(node, mediator.data[id])) {
-                    pendingUpdates[id] = _.union(pendingUpdates[id] || [], propertyDiff(node, mediator.data[id]));
+                if (node == null){
+                    delete newData[id];
+                } else {
+                    if (!_.isEqual(node, mediator.data[id])) {
+                        pendingUpdates[id] = _.union(pendingUpdates[id] || [], propertyDiff(node, mediator.data[id]));
+                    }
                 }
+            });
+
+            //Determine which nodes have been lost
+            //TODO tremendously inefficient
+
+            var newNodes = _.keys(newData);
+            var oldNodes = _.keys(mediator.data);
+            var allNodes = _.union(newNodes, oldNodes);
+
+            var addNodes = _.difference(allNodes, newNodes);
+
+            _.each(addNodes, function (nodeID) {
+                pendingUpdates[nodeID] = ["remove"];
             });
 
             mediator.data = newData;

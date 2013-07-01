@@ -112,14 +112,23 @@ var dataio = (function () {
 
     function update( nodeID , properties) {
 
-        string = nodeID + "\t" + 
-            _.chain(properties)
-                .map(function (propertyName) {
-                    return [propertyName, encode(mediator.data[nodeID][propertyName])]
-                })
-                .flatten()
-                .value()
-                .join("\t");
+        var string;
+
+        if (properties[0] == "remove") {
+
+            string = nodeID + "\tremove";
+
+        } else {
+
+            string = nodeID + "\t" + 
+                _.chain(properties)
+                    .map(function (propertyName) {
+                        return [propertyName, encode(mediator.data[nodeID][propertyName])]
+                    })
+                    .flatten()
+                    .value()
+                    .join("\t");
+        }
 
         majaX({
             url: '/pollChange',
@@ -140,9 +149,6 @@ var dataio = (function () {
                 currentQueryCount = lastQueryCount;
             }
 
-            console.log(currentQueryCount);
-
-
             
         });
 
@@ -155,6 +161,8 @@ var dataio = (function () {
             method: 'GET',
         }, function (response) {
 
+            console.log(response);
+
             var queries = response.split("\n");
 
             _.each(queries, function (query) {
@@ -163,24 +171,33 @@ var dataio = (function () {
 
                 var parts = query.split("\t");
 
-                if (parts.length < 3){
+                if (parts.length < 2){
                     return;
                 }
 
                 var nodeID = parts[0];
 
-                var pairs = _.rest(parts);
+                console.log(parts);
 
-                if (!_.has(mediator.data, nodeID)){
+                if (parts.length  == 2 && parts[1] == "remove") {
 
-                    mediator.data[nodeID] = {};
+                    delete mediator.data[nodeID];
 
-                }
+                } else {
 
-                for (var i = 0;i<pairs.length;i+=2){
+                    var pairs = _.rest(parts);
 
-                    mediator.data[nodeID][pairs[i]] = decode(pairs[i+1]);
+                    if (!_.has(mediator.data, nodeID)){
 
+                        mediator.data[nodeID] = {};
+
+                    }
+
+                    for (var i = 0;i<pairs.length;i+=2){
+
+                        mediator.data[nodeID][pairs[i]] = decode(pairs[i+1]);
+
+                    }
                 }
 
             });

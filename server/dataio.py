@@ -32,6 +32,11 @@ def query(queryString):
 
     nodeID = q[0]
 
+    if len(q) == 2 and q[1] == "remove":
+        del nodeMap[nodeID]
+        queryList.append(queryString)
+        return
+
     # Create node
     if nodeID not in nodeMap:
         nodeMap[nodeID] = {}
