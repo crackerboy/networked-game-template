@@ -1,6 +1,6 @@
 var visual = (function () {
 
-    function init(data) {
+    function init(data, local) {
         // Visual Init
     }
 

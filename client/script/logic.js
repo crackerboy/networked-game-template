@@ -1,12 +1,12 @@
 var logic = (function () {
 
-    function init(data) {
+    function init(data, local) {
         // Game Logic Initialization
 
         return data;
     }
 
-    function loop(data) {
+    function loop(data, local, changes) {
         // Game loop
 
         return data;

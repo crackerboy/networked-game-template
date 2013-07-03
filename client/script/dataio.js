@@ -161,7 +161,7 @@ var dataio = (function () {
             method: 'GET',
         }, function (response) {
 
-            console.log(response);
+            var changes = {};
 
             var queries = response.split("\n");
 
@@ -177,15 +177,19 @@ var dataio = (function () {
 
                 var nodeID = parts[0];
 
-                console.log(parts);
-
                 if (parts.length  == 2 && parts[1] == "remove") {
+
+                    changes[nodeID] = null;
 
                     delete mediator.data[nodeID];
 
                 } else {
 
+                    changes[nodeID] = changes[nodeID] || [];
+
                     var pairs = _.rest(parts);
+
+                    // Create Node if necessary
 
                     if (!_.has(mediator.data, nodeID)){
 
@@ -194,6 +198,8 @@ var dataio = (function () {
                     }
 
                     for (var i = 0;i<pairs.length;i+=2){
+
+                        changes[nodeID].push(pairs[i]);
 
                         mediator.data[nodeID][pairs[i]] = decode(pairs[i+1]);
 
@@ -204,6 +210,24 @@ var dataio = (function () {
 
             if (queries[0].length > 3){
                 currentQueryCount += queries.length;
+            }
+
+            if (!mediator.pendingChanges) {
+
+                mediator.pendingChanges = changes;
+
+            } else {
+
+                changes = _.extend(mediator.pendingChanges,changes);
+
+                _.each(mediator.pendingChanges, function (properties, nodeID) {
+
+                    if (changes[nodeID]) {
+                        meditator.pendingChanges[nodeID] = _.union(properties, changes[nodeID]);
+                    }
+
+                });
+
             }
             
         });
